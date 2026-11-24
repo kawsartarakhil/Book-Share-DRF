@@ -199,3 +199,40 @@ class TradeCancel(UpdateAPIView):
         trade.status = "cancelled"
         trade.save()
         return Response({"message":"Trade cancelled"},status=status.HTTP_200_OK)
+
+
+class ReviewList(ListAPIView):
+    permission_classes = [AllowAny]
+    queryset = Review.objects.all().select_related("reviewer","reviewed_user","trade")
+    serializer_class = ReviewSerailizer
+
+
+class ReviewCreate(CreateAPIView):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerailizer
+    def perform_create(self,serializer):
+        trade = serializer.validated_data["trade"]
+        if trade.sender == self.request.user:
+            reviewed_user = trade.requested_book.owner
+        else:
+            reviewed_user = trade.sender
+
+        serializer.save(reviewer=self.request.user,reviewed_user=reviewed_user)
+
+
+class ReviewDetail(RetrieveAPIView):
+    permission_classes = [AllowAny]
+    queryset = Review.objects.all().select_related("reviewer","reviewed_user","trade")
+    serializer_class = ReviewSerailizer
+
+
+class ReviewUpdate(UpdateAPIView):
+    serializer_class = ReviewSerailizer
+    def get_queryset(self):
+        return Review.objects.filter(reviewer=self.request.user)
+
+
+class ReviewDelete(DestroyAPIView):
+    serializer_class = ReviewSerailizer
+    def get_queryset(self):
+        return Review.objects.filter(reviewer=self.request.user)

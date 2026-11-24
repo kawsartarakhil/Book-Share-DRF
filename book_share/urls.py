@@ -22,4 +22,10 @@ urlpatterns = [
     path('trades/<int:pk>/accept/',views.TradeAccept.as_view()),
     path('trades/<int:pk>/reject/',views.TradeReject.as_view()),
     path('trades/<int:pk>/cancel/',views.TradeCancel.as_view()),
+
+    path('reviews/',views.ReviewList.as_view()),
+    path('reviews/create/',views.ReviewCreate.as_view()),
+    path('reviews/<int:pk>/',views.ReviewDetail.as_view()),
+    path('reviews/<int:pk>/update/',views.ReviewUpdate.as_view()),
+    path('reviews/<int:pk>/delete/',views.ReviewDelete.as_view()),
     ]

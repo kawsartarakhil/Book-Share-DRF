@@ -40,7 +40,10 @@ class RefreshSerailizer(serializers.Serializer):
     refresh = serializers.CharField()
 
 class UserProfileSerializer(serializers.ModelSerializer):
+    rating = serializers.FloatField(source="avg_rating",read_only=True)
     class Meta:
         model = CustomUser
-        fields = ["id","username","email","city","phone_number"]
-        read_only_fields = ["id","username","email"]
+        fields = ["id","username","email","city","phone_number","rating"]
+        read_only_fields = ["id","username","email","rating"]
+
+    

@@ -20,7 +20,7 @@ from drf_spectacular.views import SpectacularSwaggerView,SpectacularAPIView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/schema/',SpectacularAPIView.as_view()),
-    path('api/docs/',SpectacularSwaggerView.as_view()),
+    path('api/schema/',SpectacularAPIView.as_view(),name='schema'),
+    path('api/docs/',SpectacularSwaggerView.as_view(),name='swagger-ui'),
     path('',include('book_share.urls')),
 ]
