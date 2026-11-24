@@ -22,8 +22,8 @@ class Books(models.Model):
         ("5","five star"),
     )
     STATUS = (
-        ("available","Available"),
-        ("exchnaged","exchange")
+    ("available","Available"),
+    ("exchanged","Exchanged"),
     )
     title = models.CharField(max_length=150)
     owner = models.ForeignKey(CustomUser,on_delete=models.CASCADE)

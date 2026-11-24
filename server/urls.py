@@ -23,4 +23,5 @@ urlpatterns = [
     path('api/schema/',SpectacularAPIView.as_view(),name='schema'),
     path('api/docs/',SpectacularSwaggerView.as_view(),name='swagger-ui'),
     path('',include('book_share.urls')),
+    path('accounts/',include('accounts.urls')),
 ]

@@ -11,37 +11,43 @@ from rest_framework.filters import SearchFilter,OrderingFilter
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from rest_framework import status
+from drf_spectacular.utils import extend_schema
 
+@extend_schema(responses=CategorySerailizer)
 class categoryList(ListAPIView):
     permission_classes = [AllowAny]
     queryset = Category.objects.all()
     serializer_class = CategorySerailizer
+    pagination_class = CustomPagination
 
-
+@extend_schema(request=CategorySerailizer,responses=CategorySerailizer)
 class categoryCreate(CreateAPIView):
     permission_classes = [IsAdminUser]
     queryset = Category.objects.all()
     serializer_class = CategorySerailizer
+    
+    
 
-
+@extend_schema(responses=CategorySerailizer)
 class categoryDetail(RetrieveAPIView):
     permission_classes = [AllowAny]
     queryset = Category.objects.all()
     serializer_class = CategorySerailizer
 
+@extend_schema(request=CategorySerailizer,responses=CategorySerailizer)
 class categoryUpdate(UpdateAPIView):
     permission_classes = [IsAdminUser]
     queryset = Category.objects.all()
     serializer_class = CategorySerailizer
 
-
+@extend_schema(responses=None)
 class categoryDelete(DestroyAPIView):
     permission_classes = [IsAdminUser]
     queryset = Category.objects.all()
     serializer_class = CategorySerailizer
 
 
-
+@extend_schema(responses=BookSerailizer)
 class BookList(ListAPIView):
     permission_classes = [AllowAny]
     queryset = Books.objects.filter(status="available").select_related("owner","category")
@@ -52,7 +58,7 @@ class BookList(ListAPIView):
     search_fields = ["title","author"]
     ordering_fields = ["created_at","title"]
 
-
+@extend_schema(request=BookSerailizer,responses=BookSerailizer)
 class BookCreate(CreateAPIView):
     queryset = Books.objects.all()
     serializer_class = BookSerailizer
@@ -62,7 +68,7 @@ class BookCreate(CreateAPIView):
 
 
 
-
+@extend_schema(request=BookSerailizer,responses=BookSerailizer)
 class BookUpdate(UpdateAPIView):
     permission_classes = [isBookOwner]
     queryset = Books.objects.all()
@@ -72,7 +78,7 @@ class BookUpdate(UpdateAPIView):
     def perform_update(self,serializer):
         serializer.save(owner=self.request.user,status=serializer.instance.status)
 
-
+@extend_schema(responses=None)
 class BookDelete(DestroyAPIView):
     permission_classes = [isBookOwner]
     queryset = Books.objects.all()
@@ -83,21 +89,23 @@ class BookDelete(DestroyAPIView):
             raise ValidationError("This book has a pending trade request")
         instance.delete()
 
+@extend_schema(responses=BookSerailizer)
 class BookDetail(RetrieveAPIView):
     permission_classes = [AllowAny]
-    queryset = Books.objects.all().select_related("owner","category")
+    queryset = Books.objects.filter(status="available").select_related("owner","category")
     serializer_class = BookSerailizer
 
-
+@extend_schema(responses=BookSerailizer)
 class Mybooks(ListAPIView):
     serializer_class = BookSerailizer
+    pagination_class = CustomPagination
     def get_queryset(self):
         return Books.objects.filter(owner = self.request.user).select_related("owner","category")
 
 
 
 
-
+@extend_schema(request=TradeSerailizer,responses=TradeSerailizer)
 class TradeCreate(CreateAPIView):
     queryset = Trade.objects.all()
     serializer_class = TradeSerailizer
@@ -105,6 +113,7 @@ class TradeCreate(CreateAPIView):
     def perform_create(self,serializer):
         serializer.save(sender=self.request.user,status="pending")
 
+@extend_schema(responses=TradeSerailizer)
 class TradeDetail(RetrieveAPIView):
     queryset = Trade.objects.all()
     serializer_class = TradeSerailizer
@@ -115,8 +124,10 @@ class TradeDetail(RetrieveAPIView):
             raise PermissionDenied("You cannot view this trade")
         return trade
 
+@extend_schema(responses=TradeSerailizer)
 class IncomingTrades(ListAPIView):
     serializer_class = TradeSerailizer
+    pagination_class = CustomPagination
 
     def get_queryset(self):
         trades = Trade.objects.filter(requested_book__owner=self.request.user).select_related("sender","requested_book__owner","requested_book__category","offered_book__owner","offered_book__category")
@@ -125,9 +136,10 @@ class IncomingTrades(ListAPIView):
             trades = trades.filter(status=trade_status)
         return trades
 
-
+@extend_schema(responses=TradeSerailizer)
 class OutgoingTrades(ListAPIView):
     serializer_class = TradeSerailizer
+    pagination_class = CustomPagination
 
     def get_queryset(self):
         trades = Trade.objects.filter(sender=self.request.user).select_related("sender","requested_book__owner","requested_book__category","offered_book__owner","offered_book__category")
@@ -137,6 +149,7 @@ class OutgoingTrades(ListAPIView):
         return trades
 
 
+@extend_schema(request=None,responses=dict)
 class TradeAccept(UpdateAPIView):
     permission_classes = [isTradereciever]
     queryset = Trade.objects.all()
@@ -169,6 +182,7 @@ class TradeAccept(UpdateAPIView):
         return Response({"message":"Trade accepted"},status=status.HTTP_200_OK)
 
 
+@extend_schema(request=None,responses=dict)
 class TradeReject(UpdateAPIView):
     permission_classes = [isTradereciever]
     queryset = Trade.objects.all()
@@ -184,7 +198,7 @@ class TradeReject(UpdateAPIView):
         trade.save()
         return Response({"message":"Trade rejected"},status=status.HTTP_200_OK)
 
-
+@extend_schema(request=None,responses=dict)
 class TradeCancel(UpdateAPIView):
     permission_classes = [isTradeSender]
     queryset = Trade.objects.all()
@@ -201,12 +215,14 @@ class TradeCancel(UpdateAPIView):
         return Response({"message":"Trade cancelled"},status=status.HTTP_200_OK)
 
 
+@extend_schema(responses=ReviewSerailizer)
 class ReviewList(ListAPIView):
     permission_classes = [AllowAny]
     queryset = Review.objects.all().select_related("reviewer","reviewed_user","trade")
     serializer_class = ReviewSerailizer
+    pagination_class = CustomPagination
 
-
+@extend_schema(request=ReviewSerailizer,responses=ReviewSerailizer)
 class ReviewCreate(CreateAPIView):
     queryset = Review.objects.all()
     serializer_class = ReviewSerailizer
@@ -219,19 +235,19 @@ class ReviewCreate(CreateAPIView):
 
         serializer.save(reviewer=self.request.user,reviewed_user=reviewed_user)
 
-
+@extend_schema(responses=ReviewSerailizer)
 class ReviewDetail(RetrieveAPIView):
     permission_classes = [AllowAny]
     queryset = Review.objects.all().select_related("reviewer","reviewed_user","trade")
     serializer_class = ReviewSerailizer
 
-
+@extend_schema(request=ReviewSerailizer,responses=ReviewSerailizer)
 class ReviewUpdate(UpdateAPIView):
     serializer_class = ReviewSerailizer
     def get_queryset(self):
         return Review.objects.filter(reviewer=self.request.user)
 
-
+@extend_schema(responses=None)
 class ReviewDelete(DestroyAPIView):
     serializer_class = ReviewSerailizer
     def get_queryset(self):
