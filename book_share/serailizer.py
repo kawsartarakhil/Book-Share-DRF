@@ -16,6 +16,7 @@ class BookSerailizer(serializers.ModelSerializer):
     class Meta:
         model = Books
         fields = "__all__"
+        read_only_fields = ["owner","status"]
 
     def to_representation(self,instance):
         data = super().to_representation(instance)
