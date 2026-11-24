@@ -55,7 +55,7 @@ def logout_view(request):
 
 @extend_schema(request=UserProfileSerializer,responses=UserProfileSerializer,methods=["PUT","PATCH"])
 @extend_schema(request=None,responses=UserProfileSerializer,methods=["GET"])
-@api_view(["GET","PUT","PATCH"])
+@api_view(["GET","PUT"])
 def profile_view(request):
     user = CustomUser.objects.filter(id=request.user.id).annotate(avg_rating=Avg("reviews_received__rating")).first()
 
